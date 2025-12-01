@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+  labels:
+    app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+spec:
+  replicas: {{ .Values.vflengine.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+  serviceName: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+    spec:
+      containers:
+      - name: {{ .Values.vflengine.name }}
+        image: {{ (or .Values.vflengine.image.registry .Values.global.imageRegistry) }}{{ .Values.vflengine.image.repository }}:{{ .Values.vflengine.image.tag }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+
+
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            echo "Running VFL in mode: {{ .Values.vflengine.role }}"
+            chmod +x /workspace/run.sh
+            /workspace/run.sh {{ .Values.vflengine.role }}
+
+        ports:
+        - containerPort: {{ .Values.vflengine.extraPorts.port }}
+
+        env:
+        - name: ROLE
+          value: {{ .Values.vflengine.role }}
+        - name: GUEST_IP
+          value: {{ .Values.vflengine.guest_ip }}
+        - name: GUEST_PORT
+          value: {{ .Values.vflengine.guest_port | quote }}
+        {{- with .Values.vflengine.extraEnvs }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
+        volumeMounts:
+        - name: data
+          mountPath: {{ .Values.vflengine.extraVolumeMounts.data }}
+        - name: cache
+          mountPath: {{ .Values.vflengine.extraVolumeMounts.cache }}
+        {{- with .Values.vflengine.extraVolumeMounts.additional }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
+      {{- include "common.volumes" . | nindent 6 }}
+

@@ -1,0 +1,66 @@
+global:
+  affinity:
+    key: kubernetes.io/hostname
+    values:
+      - share-61
+  affinityEnabled: true
+  commonAnnotations: {}
+  commonLabels: {}
+  component: ""
+  imagePullPolicy: IfNotPresent
+  imageRegistry: ""             
+  inst_id: ""
+  engine_tag: "vim"              
+  space_inst: ""
+  resourcesEnabled: true
+  tolerations: []
+
+persistence:
+  class: host
+  enabled: false
+  nfs_server: ""
+  path: /data/k8s
+  pv_size: 51Gi
+  pvc_size: 50Gi
+
+service:
+  fixed: true
+  ipMid: 251
+  ipPost: 1
+  ipPre: 10.99.
+
+vflengine:
+  role: "guest"     
+
+  guest_ip: ""
+  guest_port: 5000
+
+  affinity:
+    key: ""
+    values: []
+
+  enabled: true
+  extraAnnotations: {}
+  extraEnvs: {}
+  extraLabels: {}
+
+  extraPorts:
+    increase: 1
+    port: 8080
+    probe: 8080
+    service:
+      - 8080
+
+  extraVolumeMounts:
+    cache: /mnt
+    data: /data
+
+  image:
+    registry: ""               
+    repository: "vfl-image"    
+    tag: "latest"                  
+
+  name: vflengine
+  replicaCount: 1
+  resources: {}
+  tolerations: []

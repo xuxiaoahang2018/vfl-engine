@@ -1,0 +1,23 @@
+{{- $ports := .Values.vflengine.extraPorts.service -}}
+{{- $ip := printf "%s%d.%d" .Values.service.ipPre .Values.service.ipMid .Values.vflengine.extraPorts.increase -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+  labels:
+    app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+spec:
+  {{- if .Values.service.fixed }}
+  type: ClusterIP
+  clusterIP: {{ $ip }}
+  {{- end }}
+  ports:
+  {{- range $i, $p := $ports }}
+  - port: {{ $p }}
+    targetPort: {{ $p }}
+    protocol: TCP
+    name: {{ $.Release.Name }}-{{ $.Values.vflengine.name }}-{{ $i }}
+  {{- end }}
+  selector:
+    app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+
