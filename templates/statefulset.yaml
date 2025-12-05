@@ -17,10 +17,7 @@ spec:
     spec:
       containers:
       - name: {{ .Values.vflengine.name }}
-        image: {{ (or .Values.vflengine.image.registry .Values.global.imageRegistry) }}{{ .Values.vflengine.image.repository }}:{{ .Values.vflengine.image.tag }}
-        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
-
-
+        image: {{ .Values.vflengine.image.repository }}:{{ .Values.vflengine.image.tag }}
         command: ["/bin/bash", "-c"]
         args:
           - |
