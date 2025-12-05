@@ -49,13 +49,6 @@ vflengine:
   extraEnvs: {}
   extraLabels: {}
 
-  extraPorts:
-    increase: 1
-    port: 5010 # Default to host UI port
-    probe: 8080
-    service:
-      - 5010 # Expose host UI port by default
-
   ingress:
     enabled: false
     annotations: {}

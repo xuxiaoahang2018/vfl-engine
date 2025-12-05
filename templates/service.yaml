@@ -1,21 +1,47 @@
+# Service for UI (External Access via NodePort by default)
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+  name: {{ .Release.Name }}-{{ .Values.vflengine.name }}-ui
   labels:
     app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
 spec:
-  type: ClusterIP 
+  type: {{ .Values.service.type | default "NodePort" }}
   ports:
-  - port: {{ .Values.vflengine.extraPorts.port }}
-    targetPort: {{ .Values.vflengine.extraPorts.port }}
-    protocol: TCP
-    name: http
-  {{- range $i, $p := .Values.vflengine.extraPorts.service }}
-  - port: {{ $p }}
-    targetPort: {{ $p }}
-    protocol: TCP
-    name: {{ $.Release.Name }}-{{ $.Values.vflengine.name }}-{{ $i }}
-  {{- end }}
+    {{- if eq .Values.vflengine.role "host" }}
+    - port: {{ .Values.vflengine.host_ui_port }}
+      targetPort: {{ .Values.vflengine.host_ui_port }}
+      protocol: TCP
+      name: http-ui-host
+    {{- else if eq .Values.vflengine.role "guest" }}
+    - port: {{ .Values.vflengine.guest_ui_port }}
+      targetPort: {{ .Values.vflengine.guest_ui_port }}
+      protocol: TCP
+      name: http-ui-guest
+    {{- end }}
+  selector:
+    app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+---
+# Service for Backend (Internal Access only)
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.vflengine.name }}-internal
+  labels:
+    app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+spec:
+  type: ClusterIP
+  ports:
+    {{- if eq .Values.vflengine.role "host" }}
+    - port: {{ .Values.vflengine.host_port }}
+      targetPort: {{ .Values.vflengine.host_port }}
+      protocol: TCP
+      name: grpc-host
+    {{- else if eq .Values.vflengine.role "guest" }}
+    - port: {{ .Values.vflengine.guest_port }}
+      targetPort: {{ .Values.vflengine.guest_port }}
+      protocol: TCP
+      name: grpc-guest
+    {{- end }}
   selector:
     app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
