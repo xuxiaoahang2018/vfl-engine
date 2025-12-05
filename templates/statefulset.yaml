@@ -29,15 +29,36 @@ spec:
             /workspace/run.sh {{ .Values.vflengine.role }}
 
         ports:
-        - containerPort: {{ .Values.vflengine.extraPorts.port }}
+        {{- if eq .Values.vflengine.role "host" }}
+        - containerPort: {{ .Values.vflengine.host_ui_port }}
+          name: host-ui
+        - containerPort: {{ .Values.vflengine.host_port }}
+          name: host-vfl
+        {{- else if eq .Values.vflengine.role "guest" }}
+        - containerPort: {{ .Values.vflengine.guest_ui_port }}
+          name: guest-ui
+        - containerPort: {{ .Values.vflengine.guest_port }}
+          name: guest-vfl
+        {{- end }}
 
         env:
         - name: ROLE
           value: {{ .Values.vflengine.role }}
+        - name: HOST_IP
+          value: {{ .Values.vflengine.host_ip }}
+        - name: HOST_PORT
+          value: {{ .Values.vflengine.host_port | quote }}
         - name: GUEST_IP
           value: {{ .Values.vflengine.guest_ip }}
         - name: GUEST_PORT
           value: {{ .Values.vflengine.guest_port | quote }}
+        {{- if eq .Values.vflengine.role "host" }}
+        - name: HOST_UI_PORT
+          value: {{ .Values.vflengine.host_ui_port | quote }}
+        {{- else if eq .Values.vflengine.role "guest" }}
+        - name: GUEST_UI_PORT
+          value: {{ .Values.vflengine.guest_ui_port | quote }}
+        {{- end }}
         {{- with .Values.vflengine.extraEnvs }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

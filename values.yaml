@@ -30,10 +30,15 @@ service:
   ipPre: 10.99.
 
 vflengine:
-  role: "guest"     
+  role: "guest"
 
-  guest_ip: ""
-  guest_port: 5000
+  host_ip: "127.0.0.1"
+  host_port: 50051
+  host_ui_port: 5014
+
+  guest_ip: "127.0.0.1"
+  guest_port: 50052
+  guest_ui_port: 5013
 
   affinity:
     key: ""
@@ -46,10 +51,25 @@ vflengine:
 
   extraPorts:
     increase: 1
-    port: 8080
+    port: 5010 # Default to host UI port
     probe: 8080
     service:
-      - 8080
+      - 5010 # Expose host UI port by default
+
+  ingress:
+    enabled: false
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
 
   extraVolumeMounts:
     cache: /mnt

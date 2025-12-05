@@ -7,6 +7,10 @@ metadata:
 spec:
   type: ClusterIP 
   ports:
+  - port: {{ .Values.vflengine.extraPorts.port }}
+    targetPort: {{ .Values.vflengine.extraPorts.port }}
+    protocol: TCP
+    name: http
   {{- range $i, $p := .Values.vflengine.extraPorts.service }}
   - port: {{ $p }}
     targetPort: {{ $p }}
