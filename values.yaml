@@ -71,7 +71,7 @@ vflengine:
   image:
     registry: ""               
     repository: "10.12.0.78:5000/jewel-release/vflengine"
-    tag: "2.0.0"
+    tag: "3.0.0"
 
   name: vflengine
   replicaCount: 1
