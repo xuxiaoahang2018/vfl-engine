@@ -30,15 +30,14 @@ service:
   ipPre: 10.99.
 
 vflengine:
-  role: "guest"
-
-  host_ip: "127.0.0.1"
-  host_port: 50051
-  host_ui_port: 5014
-
-  guest_ip: "127.0.0.1"
-  guest_port: 50052
-  guest_ui_port: 5013
+  host:
+    name: "host"
+    port: 50051
+    ui_port: 5014
+  guest:
+    name: "guest"
+    port: 50052
+    ui_port: 5013
 
   affinity:
     key: ""
@@ -71,7 +70,7 @@ vflengine:
   image:
     registry: ""               
     repository: "10.12.0.78:5000/jewel-release/vflengine"
-    tag: "3.0.0"
+    tag: "3.0.1"
 
   name: vflengine
   replicaCount: 1

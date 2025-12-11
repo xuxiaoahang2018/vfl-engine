@@ -2,46 +2,66 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.vflengine.name }}-ui
+  name: {{ .Release.Name }}-{{ .Values.vflengine.host.name }}-ui
   labels:
-    app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+    app: {{ .Release.Name }}-{{ .Values.vflengine.host.name }}
 spec:
   type: {{ .Values.service.type | default "NodePort" }}
   ports:
-    {{- if eq .Values.vflengine.role "host" }}
-    - port: {{ .Values.vflengine.host_ui_port }}
-      targetPort: {{ .Values.vflengine.host_ui_port }}
+    - port: {{ .Values.vflengine.host.ui_port }}
+      targetPort: {{ .Values.vflengine.host.ui_port }}
       protocol: TCP
       name: http-ui-host
-    {{- else if eq .Values.vflengine.role "guest" }}
-    - port: {{ .Values.vflengine.guest_ui_port }}
-      targetPort: {{ .Values.vflengine.guest_ui_port }}
+  selector:
+    app: {{ .Release.Name }}-{{ .Values.vflengine.host.name }}
+---
+# Service for UI (External Access via NodePort by default)
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.vflengine.guest.name }}-ui
+  labels:
+    app: {{ .Release.Name }}-{{ .Values.vflengine.guest.name }}
+spec:
+  type: {{ .Values.service.type | default "NodePort" }}
+  ports:
+    - port: {{ .Values.vflengine.guest.ui_port }}
+      targetPort: {{ .Values.vflengine.guest.ui_port }}
       protocol: TCP
       name: http-ui-guest
-    {{- end }}
   selector:
-    app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+    app: {{ .Release.Name }}-{{ .Values.vflengine.guest.name }}
 ---
 # Service for Backend (Internal Access only)
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.vflengine.name }}-internal
+  name: {{ .Release.Name }}-{{ .Values.vflengine.host.name }}-internal
   labels:
-    app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+    app: {{ .Release.Name }}-{{ .Values.vflengine.host.name }}
 spec:
   type: ClusterIP
   ports:
-    {{- if eq .Values.vflengine.role "host" }}
-    - port: {{ .Values.vflengine.host_port }}
-      targetPort: {{ .Values.vflengine.host_port }}
+    - port: {{ .Values.vflengine.host.port }}
+      targetPort: {{ .Values.vflengine.host.port }}
       protocol: TCP
       name: grpc-host
-    {{- else if eq .Values.vflengine.role "guest" }}
-    - port: {{ .Values.vflengine.guest_port }}
-      targetPort: {{ .Values.vflengine.guest_port }}
+  selector:
+    app: {{ .Release.Name }}-{{ .Values.vflengine.host.name }}
+---
+# Service for Backend (Internal Access only)
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.vflengine.guest.name }}-internal
+  labels:
+    app: {{ .Release.Name }}-{{ .Values.vflengine.guest.name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.vflengine.guest.port }}
+      targetPort: {{ .Values.vflengine.guest.port }}
       protocol: TCP
       name: grpc-guest
-    {{- end }}
   selector:
-    app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+    app: {{ .Release.Name }}-{{ .Values.vflengine.guest.name }}

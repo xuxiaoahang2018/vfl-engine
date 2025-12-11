@@ -1,4 +1,4 @@
-配置后端镜像
+配置后端镜像,当前该chart包可以同时拉起guest端和host端
 
 
 image:

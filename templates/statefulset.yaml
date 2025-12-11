@@ -1,61 +1,112 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+  name: {{ .Release.Name }}-{{ .Values.vflengine.host.name }}
   labels:
-    app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+    app: {{ .Release.Name }}-{{ .Values.vflengine.host.name }}
 spec:
   replicas: {{ .Values.vflengine.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
-  serviceName: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+      app: {{ .Release.Name }}-{{ .Values.vflengine.host.name }}
+  serviceName: {{ .Release.Name }}-{{ .Values.vflengine.host.name }}
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-{{ .Values.vflengine.name }}
+        app: {{ .Release.Name }}-{{ .Values.vflengine.host.name }}
     spec:
       containers:
-      - name: {{ .Values.vflengine.name }}
-        image: {{ .Values.vflengine.image.repository }}:{{ .Values.vflengine.image.tag }}
+      - name: {{ .Values.vflengine.host.name }}
+        image: {{ (or .Values.vflengine.image.registry .Values.global.imageRegistry) }}{{ .Values.vflengine.image.repository }}:{{ .Values.vflengine.image.tag }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+
+
         command: ["/bin/bash", "-c"]
         args:
           - |
-            echo "Running VFL in mode: {{ .Values.vflengine.role }}"
+            echo "Running VFL in mode: host"
             chmod +x /workspace/run.sh
-            /workspace/run.sh {{ .Values.vflengine.role }}
+            /workspace/run.sh host
 
         ports:
-        {{- if eq .Values.vflengine.role "host" }}
-        - containerPort: {{ .Values.vflengine.host_ui_port }}
+        - containerPort: {{ .Values.vflengine.host.ui_port }}
           name: host-ui
-        - containerPort: {{ .Values.vflengine.host_port }}
+        - containerPort: {{ .Values.vflengine.host.port }}
           name: host-vfl
-        {{- else if eq .Values.vflengine.role "guest" }}
-        - containerPort: {{ .Values.vflengine.guest_ui_port }}
-          name: guest-ui
-        - containerPort: {{ .Values.vflengine.guest_port }}
-          name: guest-vfl
-        {{- end }}
 
         env:
         - name: ROLE
-          value: {{ .Values.vflengine.role }}
-        - name: HOST_IP
-          value: {{ .Values.vflengine.host_ip }}
+          value: "host"
         - name: HOST_PORT
-          value: {{ .Values.vflengine.host_port | quote }}
+          value: {{ .Values.vflengine.host.port | quote }}
         - name: GUEST_IP
-          value: {{ .Values.vflengine.guest_ip }}
+          value: "{{ .Release.Name }}-{{ .Values.vflengine.guest.name }}-internal"
         - name: GUEST_PORT
-          value: {{ .Values.vflengine.guest_port | quote }}
-        {{- if eq .Values.vflengine.role "host" }}
+          value: {{ .Values.vflengine.guest.port | quote }}
         - name: HOST_UI_PORT
-          value: {{ .Values.vflengine.host_ui_port | quote }}
-        {{- else if eq .Values.vflengine.role "guest" }}
-        - name: GUEST_UI_PORT
-          value: {{ .Values.vflengine.guest_ui_port | quote }}
+          value: {{ .Values.vflengine.host.ui_port | quote }}
+        {{- with .Values.vflengine.extraEnvs }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
+
+        volumeMounts:
+        - name: data
+          mountPath: {{ .Values.vflengine.extraVolumeMounts.data }}
+        - name: cache
+          mountPath: {{ .Values.vflengine.extraVolumeMounts.cache }}
+        {{- with .Values.vflengine.extraVolumeMounts.additional }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
+      {{- include "common.volumes" . | nindent 6 }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.vflengine.guest.name }}
+  labels:
+    app: {{ .Release.Name }}-{{ .Values.vflengine.guest.name }}
+spec:
+  replicas: {{ .Values.vflengine.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-{{ .Values.vflengine.guest.name }}
+  serviceName: {{ .Release.Name }}-{{ .Values.vflengine.guest.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-{{ .Values.vflengine.guest.name }}
+    spec:
+      containers:
+      - name: {{ .Values.vflengine.guest.name }}
+        image: {{ (or .Values.vflengine.image.registry .Values.global.imageRegistry) }}{{ .Values.vflengine.image.repository }}:{{ .Values.vflengine.image.tag }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+
+
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            echo "Running VFL in mode: guest"
+            chmod +x /workspace/run.sh
+            /workspace/run.sh guest
+
+        ports:
+        - containerPort: {{ .Values.vflengine.guest.ui_port }}
+          name: guest-ui
+        - containerPort: {{ .Values.vflengine.guest.port }}
+          name: guest-vfl
+
+        env:
+        - name: ROLE
+          value: "guest"
+        - name: HOST_PORT
+          value: {{ .Values.vflengine.host.port | quote }}
+        - name: GUEST_IP
+          value: "{{ .Release.Name }}-{{ .Values.vflengine.guest.name }}-internal"
+        - name: GUEST_PORT
+          value: {{ .Values.vflengine.guest.port | quote }}
+        - name: GUEST_UI_PORT
+          value: {{ .Values.vflengine.guest.ui_port | quote }}
         {{- with .Values.vflengine.extraEnvs }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
