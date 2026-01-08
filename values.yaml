@@ -30,14 +30,15 @@ service:
   ipPre: 10.99.
 
 vflengine:
-  host:
-    name: "host"
-    port: 50051
-    ui_port: 5014
-  guest:
-    name: "guest"
-    port: 50052
-    ui_port: 5013
+  role: "host"
+
+  host_ip: "192.168.142.129"
+  host_port: 30051
+  host_ui_port: 30014
+
+  guest_ip: "192.168.142.128"
+  guest_port: 30052
+  guest_ui_port: 30013
 
   affinity:
     key: ""
